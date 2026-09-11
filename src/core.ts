@@ -540,7 +540,7 @@ export function createStreamCommandCode(deps: CoreDependencies) {
         const reasoningEffort = mappedReasoningEffort(model, options)
         const timeoutMs = options?.timeoutMs
 
-        const allowImages = modelSupportsImageInput(model.id)
+        const allowImages = modelSupportsImageInput(model.id, model.input)
         if (!allowImages) assertTextOnlyMessages(context.messages)
 
         let body: unknown = {

@@ -126,6 +126,24 @@ describe("commandCodeModelsFromApiResponse()", () => {
     assert.equal(modelSupportsImageInput("unknown-new-model"), false)
   })
 
+  it("prefers host-resolved input modalities over the catalog snapshot", () => {
+    // A model published upstream after the pinned CLI release is absent from the
+    // generated catalog, so the host's resolved modalities must win.
+    assert.deepEqual(inputModalitiesForModel("unknown-new-model"), ["text"])
+    assert.deepEqual(inputModalitiesForModel("unknown-new-model", ["text", "image"]), [
+      "text",
+      "image",
+    ])
+    assert.equal(modelSupportsImageInput("unknown-new-model", ["text", "image"]), true)
+
+    const catalogVision = Object.keys(MODEL_INPUT_MODALITIES)[0]
+    // A host that narrows a catalogued vision model back to text stays authoritative.
+    assert.deepEqual(inputModalitiesForModel(catalogVision, ["text"]), ["text"])
+    assert.equal(modelSupportsImageInput(catalogVision, ["text"]), false)
+    // An absent host list falls back to the catalog.
+    assert.deepEqual(inputModalitiesForModel(catalogVision, []), ["text", "image"])
+  })
+
   it("tracks reasoning independently from selectable effort levels", () => {
     const reasoningModels = Object.keys(MODEL_REASONING)
     const effortModels = Object.keys(MODEL_EFFORTS)

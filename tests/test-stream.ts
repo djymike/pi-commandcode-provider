@@ -206,6 +206,61 @@ describe("streamCommandCode — successful streams", () => {
     )
   })
 
+  it("forwards images on the generate transport for models the host advertises as vision-capable", async () => {
+    server.mockResponse({
+      type: "success",
+      events: [JSON.stringify({ type: "finish", finishReason: "stop" })],
+    })
+    const { streamCommandCode } = createTestDeps({ apiBase: server.baseUrl() })
+
+    // `unknown-new-model` is absent from the pinned capability catalog, so only
+    // the host's resolved `input` can unlock image content here.
+    await collectEvents(
+      streamCommandCode(
+        makeModel({ id: "unknown-new-model", input: ["text", "image"] }),
+        makeContext({
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: "inspect" },
+                { type: "image", data: "aGVsbG8=", mimeType: "image/png" },
+              ],
+            },
+          ],
+        }),
+        { apiKey: "mock-key" },
+      ),
+    )
+
+    assert.equal(
+      objectAt(server.lastRequestBody(), ["params", "messages", "0", "content", "1", "image"]),
+      "data:image/png;base64,aGVsbG8=",
+    )
+  })
+
+  it("rejects images when the host narrows a catalogued vision model to text", async () => {
+    const { streamCommandCode } = createTestDeps({ apiBase: server.baseUrl() })
+
+    const events = await collectEvents(
+      streamCommandCode(
+        makeModel({ id: "gpt-5.6-luna", input: ["text"] }),
+        makeContext({
+          messages: [
+            {
+              role: "user",
+              content: [{ type: "image", data: "aGVsbG8=", mimeType: "image/png" }],
+            },
+          ],
+        }),
+        { apiKey: "mock-key" },
+      ),
+    )
+
+    assert.equal(events.at(-1)?.type, "error")
+    assert.equal(server.requestCount(), 0)
+  })
+
   it("forwards a tool-result image as a following user image for vision-capable models", async () => {
     server.mockResponse({
       type: "success",

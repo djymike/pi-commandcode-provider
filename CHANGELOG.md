@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Honor the host's resolved `model.input` on the legacy generate transport instead of consulting only the pinned capability snapshot, so a vision-capable model that the catalog does not yet list can receive images there too. A host that narrows a catalogued vision model to text is honored as well, keeping the image rejection in place.
+
 ## 0.6.4 - 2026-09-03
 
 - Refresh the generated Command Code capability catalog from `command-code@1.40.1` to `command-code@1.44.0`, adding current image-input, reasoning, effort, and output-limit metadata for newly published models.

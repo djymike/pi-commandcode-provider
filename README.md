@@ -143,6 +143,8 @@ The provider advertises image input only for models marked with the `image` inpu
 
 For vision-capable models, Pi's native provider adapters forward image blocks from user messages and tool results using the documented OpenAI or Anthropic message schema. Unknown and text-only models remain marked text-only in Pi.
 
+The legacy generate transport resolves image support from the host's `model.input` when the host supplies it, and falls back to the capability snapshot otherwise. Because the snapshot is generated from a single CLI release, a host that marks a model as `["text", "image"]` — for example through a `models.yml` or `models.json` model override — can send images on both transports before the catalog catches up. A host that narrows a catalogued vision model to text is likewise honored.
+
 ## Pricing display
 
 The Command Code Provider API does not currently include prices in its model catalog. This extension therefore keeps a static table for models with known prices so pi can display estimated request costs. DeepSeek V4 uses time-dependent rates; pi displays the documented off-peak rate, which applies for 17 hours per day.
