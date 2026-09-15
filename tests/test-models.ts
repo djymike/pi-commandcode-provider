@@ -140,6 +140,9 @@ describe("commandCodeModelsFromApiResponse()", () => {
     // A host that narrows a catalogued vision model back to text stays authoritative.
     assert.deepEqual(inputModalitiesForModel(catalogVision, ["text"]), ["text"])
     assert.equal(modelSupportsImageInput(catalogVision, ["text"]), false)
+    assert.deepEqual(inputModalitiesForModel(catalogVision, ["text", "audio"]), ["text"])
+    assert.deepEqual(inputModalitiesForModel(catalogVision, ["audio"]), [])
+    assert.equal(modelSupportsImageInput(catalogVision, ["audio"]), false)
     // An absent host list falls back to the catalog.
     assert.deepEqual(inputModalitiesForModel(catalogVision, []), ["text", "image"])
   })
@@ -216,13 +219,14 @@ describe("commandCodeModelsFromApiResponse()", () => {
 
   it("merges manual effort overrides over the generated catalog", () => {
     const validEfforts = new Set(["minimal", "low", "medium", "high", "xhigh", "max"])
-    assert.ok(Object.keys(MODEL_EFFORT_OVERRIDES).length > 0)
+    // An empty override map is the healthy end state once upstream publishes every
+    // level, so asserting it is non-empty made that state unreachable.
     for (const [modelId, efforts] of Object.entries(MODEL_EFFORT_OVERRIDES)) {
       assert.equal(MODEL_REASONING[modelId], true, `${modelId} override needs a reasoning flag`)
       assert.equal(
         CATALOG_MODEL_EFFORTS[modelId],
         undefined,
-        `${modelId} now has upstream efforts; drop the manual override`,
+        `${modelId} now has upstream efforts; run npm run sync:commandcode-catalog to drop it`,
       )
       assert.ok(efforts.length > 0)
       assert.ok(efforts.every((effort) => validEfforts.has(effort)))

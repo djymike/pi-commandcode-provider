@@ -44,7 +44,11 @@ export function inputModalitiesForModel(
   modelId: string,
   hostInput?: readonly string[],
 ): readonly CommandCodeInputType[] {
-  if (hostInput && hostInput.length > 0) return hostInput as readonly CommandCodeInputType[]
+  if (hostInput && hostInput.length > 0) {
+    return hostInput.filter(
+      (input): input is CommandCodeInputType => input === "text" || input === "image",
+    )
+  }
   return MODEL_INPUT_MODALITIES[modelId] ?? TEXT_INPUT_ONLY
 }
 
